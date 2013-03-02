@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Oink!</title>
+	<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet" media="screen">
+</head>
+<body> 
+	<div class="container">
+		<h3>Oink - We're Pigs We Don't Tweet!</h3>  
+	
+	  <section>
+			<table class="table table-striped">
+         <thead>
+           <tr>
+            <th>Timestamp</th>
+             <th>Username</th>
+             <th>Oink</th>
+           </tr>
+         </thead>
+         <tbody>
+	         <% unless @oinks.empty? %>
+		         <% @oinks.each do |oink| %>
+	           <tr>
+	             <td><%= oink['dateof(oink_id)'] %></td>
+	             <td>@<%= oink['user_id'] %></td>
+	             <td><%= oink['body'] %></td>
+	           </tr>
+	           <% end %>
+					 <% else %>
+					    <tr><td>No Oinks for you!</td></tr>
+					 <% end %>
+         </tbody>
+       </table>
+		</section>
+	
+	
+	</div>
+	<script src="http://code.jquery.com/jquery-latest.js"></script>
+	<script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/js/bootstrap.min.js"></script>
+</body>
+</html>
