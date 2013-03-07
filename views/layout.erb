@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Oink... We don't tweet, we're pigs!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le styles -->
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+    <link href="http://netdna.bootstrapcdn.com/bootswatch/2.3.0/cosmo/bootstrap.min.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="#">Oink!</a>
+          <div class="nav-collapse collapse pull-right">
+            <ul class="nav">        
+	            <% unless @user.nil? %>
+              <li><a href="/oinker/<%= @user.user_id %>/timeline"><i class="icon-time icon-white"></i> Timeline</a></li>
+              <li><a href="/oinker/<%= @user.user_id %>/userline"><i class="icon-user icon-white"></i> Userline</a></li>
+              <% end %>
+              <% if @user.nil? %>
+			          <li class="divider-vertical"></li>
+			          <li><a href="#registration-dialog" data-toggle="modal">Sign Up</a></li>  
+			          <li class="divider-vertical"></li>
+			          <li class="dropdown">
+			            <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown">
+				            Log in <span class="caret"></span>
+				          </a>
+			            <div class="dropdown-menu">
+				            <form class="form" action="/login" method="post">
+					            <div class="control-group">
+						            <div class="controls">
+				                  <input class="span2" type="text" name="user_id" placeholder="Email"/>
+				                </div>
+                      </div>
+					            <div class="control-group">
+						            <div class="controls">				
+				                  <input class="span2" type="password" name="password" placeholder="Password"/>
+				                </div>
+                      </div>				
+					            <div class="control-group">
+						            <div class="controls">				
+				                  <button type="submit" class="btn pull-right">Sign in</button>
+				                </div>
+                      </div>				              
+				            </form>
+			            </div>
+			          </li>
+		          <% else %>
+			          <li class="dropdown">
+			            <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown">
+			              <%= @user.name %> <span class="caret"></span>
+			            </a>
+			            <ul class="dropdown-menu">
+			              <li>
+				              <form action="/logout" method="POST">
+				              	 <input type="hidden" name="_method" value="DELETE"/>
+				                 <input type="submit" value="Logout" class="btn btn-inverse"/>
+				              </form>
+				            </li>
+			            </ul>
+			          </li>
+		          <% end %>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+	    <% unless flash.nil? || flash.empty? %>
+			<div class="alert alert-<%= flash.first[0] if flash %>">
+			  <button type="button" class="close" data-dismiss="alert">&times;</button>
+			  <%= flash.first[1]  %>
+			</div>
+			<% end %>
+			
+      <div class="row">
+	      <!-- SIDE BAR-->
+	      <div class="span4">
+	      	<div class="well well-small">
+		        <div class="row">
+			        <% unless @user.nil? %>
+		          <div class="span3"><%= @user.name %> (@<%= @user.user_id %>)</div>
+		          <% else %>
+		          <div class="span3"><i class="icon-ok"></i> Sign Up to Start Oinking!</div>
+		          <% end %>
+		        </div>
+		        <div class="row">
+			        <br/>
+			        <div class="span3">
+								<table class="table table-condensed span3">
+									<% unless @user.nil? %>
+									<tr>
+										<td>
+											<span class="badge badge-inverse">
+										    <a href="/oinker/<%= @user.user_id %>/userline"><%= @user.oinks %></a>
+										  </span>
+										</td>
+										<td>
+										  <span class="badge badge-inverse">
+											  <a href="/oinker/<%= @user.user_id %>/friends"><%= @user.friends %></a>
+											</span>
+										</td>
+										<td>
+											<span class="badge badge-inverse">
+											  <a href="/oinker/<%= @user.user_id %>/followers"><%= @user.followers %></a>
+											</span>
+										</td>
+									</tr>
+									<tr>
+										<td>Oinks</td>
+										<td>Friends</td>
+										<td>Followers</td>
+									</tr>
+									<% end %>
+								</table>
+							</div>
+		        </div>		      
+		      </div>
+		      <% unless @user.nil? %>
+		      <div class="well well-small">
+	          <a href="#oink-dialog" role="button" class="btn btn-success btn-block" data-toggle="modal">Oink Away!</a> 
+	        </div>
+	        <div class="well well-small"> 
+	          <a href="/oinkers" role="button" class="btn btn-info btn-block">Find Oinkers...</a> 
+	        </div>
+	        <% else %>
+	        <div class="well well-small"> 
+	          <a href="#registration-dialog" role="button" class="btn btn-primary btn-block" data-toggle="modal">Join The Piggies!</a>
+	        </div>
+	        <% end %>
+	      </div>
+	      <div class="span7">
+		      <%= yield %>
+	      </div>
+	    </div>
+      <hr>
+
+      <footer>
+        <p>&copy; Integrallis 2013</p>
+      </footer>
+
+    </div> <!-- /container -->
+
+		<div id="oink-dialog" class="modal hide fade" tabindex="-1" role="dialog">
+			<form action="/oinker/<%= @user.nil? ? '' : @user.user_id %>/userline/oink" method="post" class="modal-form">
+			  <div class="modal-header">
+			    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			    <h3 id="myModalLabel">Let's Oink</h3>
+			  </div>
+			  <div class="modal-body">
+				  <textarea name="body" rows="3" class="field span7"></textarea>
+			  </div>
+			  <div class="modal-footer">
+			    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+			    <button class="btn btn-primary">Oink!</button>
+			  </div>
+			</form>
+		</div>
+		
+		<div id="registration-dialog" class="modal hide fade" tabindex="-1" role="dialog">
+			<form action="/register" method="post" class="modal-form">
+			  <div class="modal-header">
+			    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			    <h3 id="myModalLabel">Join the Pigpen!</h3>
+			  </div>
+			  <div class="modal-body">
+				  <div class="control-group">
+					  <label class="control-label" for="username">Name</label>
+					  <div class="controls">
+					    <input type="text" id="username" name="username" class="span6" />
+					  </div>
+				  </div>
+				  <div class="control-group">
+					  <label class="control-label" for="user_id">Oinker Handle</label>
+					  <div class="controls">
+					    <input type="text" id="user_id" name="user_id" class="span6" />
+					  </div>
+				  </div>
+				  <div class="control-group">
+					  <label class="control-label" for="password">Password</label>
+					  <div class="controls">
+					    <input type="password" id="password" name="password" class="span6" />
+					  </div>
+				  </div>
+			  </div>
+			  <div class="modal-footer">
+			    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+			    <button class="btn btn-primary">Join</button>
+			  </div>
+		  </form>
+		</div>		
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
+
+  </body>
+</html>

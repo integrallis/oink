@@ -85,7 +85,8 @@ CREATE TABLE userline (
 
 CREATE TABLE users (
   user_id text PRIMARY KEY,
-  name text
+  name text,
+  password text
 ) WITH
   bloom_filter_fp_chance=0.010000 AND
   caching='KEYS_ONLY' AND

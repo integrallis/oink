@@ -1,0 +1,19 @@
+Oink - A Cassandra/Sinatra Twitter Clone
+========================================
+
+Setup
+-----
+
+1. Clone: />git clone git@github.com:integrallis/oink.git
+2. Bundle: />cd oink; bundle
+3. Configure C*: edit the cassandra.yaml file (on all nodes) and set start_native_transport to true. restart
+4. Start C*
+5. Create Keyspace and Tables: />rake dbcreate
+6. Start the app: />ruby oink.rb
+7. Go to http://localhost:4567 
+
+Cassandra Driver
+----------------
+
+cql-rb: Cassandra CQL 3 binary protocol driver for Ruby, see https://github.com/iconara/cql-rb
+  
