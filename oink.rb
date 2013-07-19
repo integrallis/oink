@@ -148,7 +148,8 @@ private
 # Connect to the cassandra client - have to do this on each request
 # -----------------------------------------------------------------------------
 def connect_cassandra
-  @client = Cql::Client.new(keyspace: 'oink').start!
+  @client = Cql::Client.connect(host: 'localhost')
+  @client.use('oink')
 end 
 
 # -----------------------------------------------------------------------------
@@ -275,20 +276,20 @@ def oink(user_id, body)
   ts = uuid.to_time
 
   # insert the oink
-  @client.execute("INSERT INTO oinks (oink_id, user_id, body) VALUES('#{guid}', '#{user_id}', '#{body}')")
+  @client.execute("INSERT INTO oinks (oink_id, user_id, body) VALUES(#{guid}, '#{user_id}', '#{body}')")
 
   # insert the oink in the owner's userline
-  @client.execute("INSERT INTO userline (oink_id, user_id, when) VALUES('#{guid}', '#{user_id}', '#{ts}')")
+  @client.execute("INSERT INTO userline (oink_id, user_id, when) VALUES(#{guid}, '#{user_id}', '#{ts}')")
 
   # insert the oink into the public user timeline
-  @client.execute("INSERT INTO timeline (oink_id, user_id, when) VALUES('#{guid}', '#{PUBLIC_USER}', '#{ts}')")
+  @client.execute("INSERT INTO timeline (oink_id, user_id, when) VALUES(#{guid}, '#{PUBLIC_USER}', '#{ts}')")
 
   # find all of the followers and the oink to their timeline
   rows = @client.execute("SELECT user_id, users FROM followers WHERE user_id = '#{user_id}'")
   unless rows.empty? 
     followers = rows.first["users"]
     followers.each do |follower|
-      @client.execute("INSERT INTO timeline (oink_id, user_id, when) VALUES('#{guid}', '#{follower}', '#{ts}')")
+      @client.execute("INSERT INTO timeline (oink_id, user_id, when) VALUES(#{guid}, '#{follower}', '#{ts}')")
     end
   end
 end 
@@ -303,7 +304,7 @@ def get_oinks(user, line)
   rows = @client.execute("SELECT oink_id FROM #{line} WHERE user_id = '#{user}' and when > '#{2.days.ago}'")
   ids = rows.map { |r| r["oink_id"] }
   unless ids.empty? 
-    @client.execute("SELECT oink_id, dateOf(oink_id), user_id, body FROM oinks WHERE oink_id IN (#{ids.map {|e|"'#{e}'"}.join(",")})")
+    @client.execute("SELECT oink_id, dateOf(oink_id), user_id, body FROM oinks WHERE oink_id IN (#{ids.map {|e|"#{e}"}.join(",")})")
   else
     []
   end
