@@ -120,7 +120,7 @@ end
 # See your list of friends (people you follow)
 # -----------------------------------------------------------------------------
 get '/oinker/:user_id/friends' do
-  @users = friends(@user.user_id)
+  @users = friends(@user.friends)
   erb :oinkers
 end
 
@@ -128,7 +128,7 @@ end
 # See your list of followers
 # -----------------------------------------------------------------------------
 get '/oinker/:user_id/followers' do
-  @users = followers(@user.user_id)
+  @users = followers(@user.followers)
   erb :oinkers
 end
 
@@ -180,7 +180,7 @@ end
 def exists?(user_id)
   connect_cassandra
   rows = @client.execute("SELECT user_id FROM users WHERE user_id = '#{user_id}'")
-  !rows.empty? && rows.size == 1
+  !rows.empty?
 end
 
 # -----------------------------------------------------------------------------
@@ -189,20 +189,17 @@ end
 def get_user(user_id)
   connect_cassandra
   
-  user_row = @client.execute("SELECT user_id, name FROM users WHERE user_id = '#{user_id}'").first
+  user_row = @client.execute("SELECT user_id, name, friends, followers FROM users WHERE user_id = '#{user_id}'").first
   oinks_count = @client.execute("SELECT count(*) FROM oinks WHERE user_id = '#{user_id}' ALLOW FILTERING").first
-  followers_row = @client.execute("SELECT users FROM followers WHERE user_id = '#{user_id}'").first
-  friends_row = @client.execute("SELECT users FROM friends WHERE user_id = '#{user_id}'").first
-  
-  followers_count = followers_row.nil? ? 0 : followers_row["users"].size
-  friends_count = friends_row.nil? ? 0 : friends_row["users"].size
   
   user = Hashie::Mash.new
   user.user_id = user_row["user_id"]
   user.name = user_row["name"]
   user.oinks = oinks_count["count"]
-  user.followers = followers_count
-  user.friends = friends_count
+  user.followers_count = user_row["followers"].nil? ? 0 : user_row["followers"].size
+  user.friends_count = user_row["friends"].nil? ? 0 : user_row["friends"].size
+  user.followers = user_row["followers"].nil? ? [] : user_row["followers"]
+  user.friends = user_row["friends"].nil? ? [] : user_row["friends"]
   user
 end
 
@@ -230,11 +227,7 @@ end
 # -----------------------------------------------------------------------------
 # Return the list of friends for a user
 # -----------------------------------------------------------------------------
-def friends(user_id)
-  connect_cassandra
-  results = @client.execute("SELECT user_id, users FROM friends WHERE user_id = '#{user_id}'")
-  user_ids = results.empty? ? [] : results.first["users"]
-  
+def friends(user_ids)
   users = []
   user_ids.each do |user_id| 
     user = Hashie::Mash.new
@@ -249,11 +242,7 @@ end
 # -----------------------------------------------------------------------------
 # Return the list of follower for a user
 # -----------------------------------------------------------------------------
-def followers(user_id)
-  connect_cassandra
-  results = @client.execute("SELECT user_id, users FROM followers WHERE user_id = '#{user_id}'")
-  user_ids = results.empty? ? [] : results.first["users"]
-  
+def followers(user_ids)
   users = []
   user_ids.each do |user_id| 
     user = Hashie::Mash.new
@@ -285,9 +274,9 @@ def oink(user_id, body)
   @client.execute("INSERT INTO timeline (oink_id, user_id, when) VALUES(#{guid}, '#{PUBLIC_USER}', '#{ts}')")
 
   # find all of the followers and the oink to their timeline
-  rows = @client.execute("SELECT user_id, users FROM followers WHERE user_id = '#{user_id}'")
+  rows = @client.execute("SELECT user_id, followers FROM users WHERE user_id = '#{user_id}'")
   unless rows.empty? 
-    followers = rows.first["users"]
+    followers = rows.first["followers"]
     followers.each do |follower|
       @client.execute("INSERT INTO timeline (oink_id, user_id, when) VALUES(#{guid}, '#{follower}', '#{ts}')")
     end
@@ -315,8 +304,8 @@ end
 # -----------------------------------------------------------------------------
 def follow(follower_id, followee_id)
   connect_cassandra
-  @client.execute("UPDATE followers SET users = users + { '#{follower_id}' } WHERE user_id = '#{followee_id}'")
-  @client.execute("UPDATE friends SET users = users + { '#{followee_id}' } WHERE user_id = '#{follower_id}'")
+  @client.execute("UPDATE users SET followers = followers + { '#{follower_id}' } WHERE user_id = '#{followee_id}'")
+  @client.execute("UPDATE users SET friends = friends + { '#{followee_id}' } WHERE user_id = '#{follower_id}'")  
 end   
 
 # -----------------------------------------------------------------------------

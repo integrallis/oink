@@ -1,17 +1,9 @@
 CREATE TABLE users (
   user_id text PRIMARY KEY,
   name text,
-  password text
-);
-
-CREATE TABLE followers (
-  user_id text PRIMARY KEY,
-  users set<text>
-);
-
-CREATE TABLE friends (
-  user_id text PRIMARY KEY,
-  users set<text>
+  password text,
+  followers set<text>,
+  friends set<text>
 );
 
 CREATE TABLE oinks (
