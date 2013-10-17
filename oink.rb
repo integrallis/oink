@@ -148,7 +148,7 @@ private
 # Connect to the cassandra client - have to do this on each request
 # -----------------------------------------------------------------------------
 def connect_cassandra
-  @client = Cql::Client.connect(host: 'localhost')
+  @client = Cql::Client.connect(hosts: ['localhost'])
   @client.use('oink')
 end 
 
