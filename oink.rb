@@ -279,7 +279,7 @@ def oink(user_id, body)
     followers = rows.first["followers"]
     followers.each do |follower|
       @client.execute("INSERT INTO timeline (oink_id, user_id, when) VALUES(#{guid}, '#{follower}', '#{ts}')")
-    end
+    end if followers
   end
 end 
 
